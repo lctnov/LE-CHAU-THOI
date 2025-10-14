@@ -6,6 +6,7 @@
 
 // **Output**: `return` - summation to `n`, i.e. `sum_to_n(5) === 1 + 2 + 3 + 4 + 5 === 15`.
 
+// problem1
 var sum_to_n_a = function(n) {
     if (n === 0) return 0;
     if (n > 0) return n + sum_to_n_a(n - 1);
