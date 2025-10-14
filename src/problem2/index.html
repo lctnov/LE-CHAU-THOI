@@ -1,27 +1,71 @@
-<html>
-
+<!doctype html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fancy Form</title>
-
-  <!-- You may add more stuff here -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Swap</title>
   <link href="style.css" rel="stylesheet" />
 </head>
-
 <body>
+  <main class="swap-app">
+    <div class="brand-header">
+      <img src="images/logo.png" alt="Brand Logo" class="brand-logo" />
+    </div>
+    <form id="swap-form" autocomplete="off">
+      <header class="swap-header">
+        <h1 class="swap-title">Swap</h1>
+        <div class="rate-info" id="rate-info" aria-live="polite"></div>
+      </header>
 
-  <!-- You may reorganise the whole HTML, as long as your form achieves the same effect. -->
-  <form onsubmit="return !1">
-    <h5>Swap</h5>
-    <label for="input-amount">Amount to send</label>
-    <input id="input-amount" />
+      <section class="panel">
+        <div class="field-row">
+          <label for="from-amount" class="field-label">You pay</label>
+          <button type="button" id="max-btn" class="ghost-btn" title="Use maximum balance">MAX</button>
+        </div>
+        <div class="input-row">
+          <div class="amount-box">
+            <input id="from-amount" class="amount-input" inputmode="decimal" placeholder="0.0" aria-label="Amount to send" min="0" />
+          </div>
+          <div class="token-box">
+            <img id="from-icon" class="token-icon" alt="" />
+            <select id="from-token" class="token-select" aria-label="Token to send"></select>
+          </div>
+        </div>
+        <div class="balance-row">
+          <span id="from-balance" class="balance-text"></span>
+        </div>
+      </section>
 
-    <label for="output-amount">Amount to receive</label>
-    <input id="output-amount" />
+      <button type="button" id="flip-btn" class="flip-btn" aria-label="Swap tokens">
+        <span class="flip-icon">⇅</span>
+      </button>
 
-    <button>CONFIRM SWAP</button>
-  </form>
+      <section class="panel">
+        <div class="field-row">
+          <label for="to-amount" class="field-label">You receive</label>
+        </div>
+        <div class="input-row">
+          <div class="amount-box">
+            <input id="to-amount" class="amount-input" placeholder="0.0" aria-label="Amount to receive" disabled />
+          </div>
+          <div class="token-box">
+            <img id="to-icon" class="token-icon" alt="" />
+            <select id="to-token" class="token-select" aria-label="Token to receive"></select>
+          </div>
+        </div>
+        <div class="balance-row">
+          <span id="to-balance" class="balance-text"></span>
+        </div>
+      </section>
+
+      <div id="message" class="message" role="alert" aria-live="polite"></div>
+
+      <button id="submit-btn" class="primary-btn" type="submit" disabled>
+        <span class="btn-label">Confirm swap</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+  </main>
   <script src="script.js"></script>
 </body>
-
 </html>
