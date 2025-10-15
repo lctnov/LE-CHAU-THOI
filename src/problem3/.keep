@@ -1,0 +1,173 @@
+// Filtering logic inside useMemo is incorrect and inefficient
+// Problems:
+// lhsPriority is not defined (likely meant balancePriority).
+// The filter condition logic is wrong: it keeps balances with amount ≤ 0, which is the opposite of what we’d expect (usually you filter positive balances).
+// It always iterates all balances, calling getPriority() multiple times unnecessarily.
+// balances.filter((balance: WalletBalance) => {
+//   const balancePriority = getPriority(balance.blockchain);
+//   if (lhsPriority > -99) {
+//     if (balance.amount <= 0) {
+//       return true;
+//     }
+//   }
+//   return false;
+// })
+// ==================================================================================================
+
+// ==================================================================================================
+// Repeated calls to getPriority()
+// getPriority() is called multiple times:
+// Once per balance in filter()
+// Twice per balance in sort()
+// That’s 3 calls per item, even though priority never changes.
+// Fix:
+// Cache the result in a local map or compute it once per balance before sorting.
+// ==================================================================================================
+
+// ==================================================================================================
+// Sorting logic is broken
+// Issues:
+// Missing return 0 for equal priorities → unpredictable ordering.
+// Sorting inside a memoized callback means this runs on every change to balances or prices, even though prices are not used in sorting.
+// Fix:
+// Remove prices from dependency array (sorting doesn’t depend on prices).
+// .sort((lhs, rhs) => {
+//   const leftPriority = getPriority(lhs.blockchain);
+//   const rightPriority = getPriority(rhs.blockchain);
+//   if (leftPriority > rightPriority) {
+//     return -1;
+//   } else if (rightPriority > leftPriority) {
+//     return 1;
+//   }
+// });
+// ==================================================================================================
+
+// ==================================================================================================
+// Wrong dependencies in useMemo
+// useMemo([...balances, prices]) 
+// includes prices, but prices aren’t used in the computation.
+// This causes unnecessary recomputation of sortedBalances.
+// Fix:
+// useMemo([balances])
+// ==================================================================================================
+
+// ==================================================================================================
+// Mapping over sortedBalances twice
+// const formattedBalances = sortedBalances.map(...)
+// const rows = sortedBalances.map(...)
+// The second mapping ignores formattedBalances, recomputing the same data again.
+// Fix:
+// Map once — reuse the formatted balances.
+// ==================================================================================================
+
+// ==================================================================================================
+// UI inefficiency — missing key uniqueness
+// key={index}
+// Using array index as a key leads to unnecessary re-renders when list changes order.
+// Fix:
+// Use a stable key like balance.currency or balance.blockchain.
+// ==================================================================================================
+
+// ==================================================================================================
+// Type mismatch and missing fields
+// WalletBalance doesn’t define a blockchain field, but the code uses balance.blockchain.
+// TypeScript should flag this.
+// It means either:
+// The type is incomplete, or
+// The data shape is inconsistent.
+// Fix:
+// Extend interface properly:
+// interface WalletBalance {
+//   currency: string;
+//   amount: number;
+//   blockchain: string;
+// }
+// ==================================================================================================
+
+// ==================================================================================================
+// Formatting uses .toFixed() with no precision
+// formatted: balance.amount.toFixed()
+// This defaults to 0 decimal places — likely incorrect for token balances.
+// Fix:
+// Specify precision dynamically:
+// formatted: Number(balance.amount?.toFixed(2))
+// ==================================================================================================
+
+// ==================================================================================================
+// Props destructuring is unused
+// const { children, ...rest } = props;
+// children is never used — either remove it or render {children}.
+// ==================================================================================================
+
+// ==================================================================================================
+// Missing memoization for derived values like usdValue
+// Each render recalculates usdValue for every row — even if prices or balances didn’t change.
+// Possible optimization:
+// Compute once in memoized formatted balances.
+// ==================================================================================================
+
+// Final refactor version (best-practice standard)
+import React, { useMemo } from 'react';
+import { BoxProps } from '@mui/material'; // using MUI
+import { WalletRow } from './WalletRow'; // component con
+import { useWalletBalances, usePrices } from './hooks'; // custom hooks
+
+interface WalletBalance {
+  blockchain: string;
+  currency: string;
+  amount: number;
+}
+
+interface Props extends BoxProps {}
+
+const getPriority = (blockchain: string): number => {
+  switch (blockchain) {
+    case 'Osmosis': return 100;
+    case 'Ethereum': return 50;
+    case 'Arbitrum': return 30;
+    case 'Zilliqa':
+    case 'Neo': return 20;
+    default: return -99;
+  }
+};
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const MemoWalletRow = React.memo(WalletRow);
+
+export const WalletPage: React.FC<Props> = (props) => {
+  const { ...rest } = props;
+  const balances = useWalletBalances();
+  const prices = usePrices();
+
+  // Create filtered and sorted lists in 1 step
+  const sortedBalances = useMemo(() => {
+    return balances
+      .map((b) => ({ ...b, priority: getPriority(b.blockchain) }))
+      .filter((b) => b.priority > -99 && b.amount > 0)
+      .sort((a, b) => b.priority - a.priority);
+  }, [balances]);
+
+  // Create a list of items (memoized & stable key)
+  const rows = useMemo(() => {
+    return sortedBalances.map((balance) => {
+      const usdValue = (prices[balance.currency] ?? 0) * balance.amount;
+
+      return (
+        <MemoWalletRow
+          key={`${balance.blockchain}-${balance.currency}`}
+          amount={balance.amount}
+          usdValue={usdValue}
+          formattedAmount={numberFormatter.format(Number(balance.amount?.toFixed(2)))}
+          className="wallet-row"
+        />
+      );
+    });
+  }, [sortedBalances, prices]);
+
+  // Return interface
+  return <div {...rest}>{rows}</div>;
+};
