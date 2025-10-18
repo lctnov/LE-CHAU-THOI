@@ -5,23 +5,43 @@
 // *Assuming this input will always produce a result lesser than `Number.MAX_SAFE_INTEGER`*.
 
 // **Output**: `return` - summation to `n`, i.e. `sum_to_n(5) === 1 + 2 + 3 + 4 + 5 === 15`.
-
+// ==============================================================================================
+// sum_to_n_a: Recursive function to calculate the sum from 1 to n (or from n to -1 if negative)
+// Time complexity: O(|n|), Space complexity: O(|n|) (recursion stack)
+// Note: Avoid using with large |n| (>10000) due to stack overflow risk
 var sum_to_n_a = function(n) {
     if (n === 0) return 0;
     if (n > 0) return n + sum_to_n_a(n - 1);
     return n + sum_to_n_a(n + 1); 
 };
+// ==============================================================================================
 
+// ==============================================================================================
+// sum_to_n_b: Loop-based function to calculate the sum
+// Time complexity: O(|n|), Space complexity: O(1)
+// Simplified loop logic for better readability
 var sum_to_n_b = function(n) {
     let sum = 0;
-    if (n > 0) {
-        for (let i = 1; i <= n; i++) sum += i;
-    } else {
-        for (let i = n; i <= 0; i++) sum += i;
+    const start = n > 0 ? 1 : n;
+    const end = n > 0 ? n : -1; // Stop before 0 if negative
+    for (let i = start; n > 0 ? i <= end : i <= end; i += n > 0 ? 1 : 1) {
+        sum += i;
     }
-    return sum;
+    return sum + (n < 0 ? -0 : 0); // Process 0 if needed
 };
+// ==============================================================================================
 
+// ==============================================================================================
+// sum_to_n_c: Mathematical formula (Gauss formula), supports both number and bigint
+// Time complexity: O(1) time and space – the most optimal
+// Supports BigInt for large numbers to avoid precision loss
 var sum_to_n_c = function(n) {
-    return (n * (n + Math.sign(n))) / 2;
+    if (typeof n === 'bigint') {
+        if (n === 0n) return 0n;
+        const abs_n = n < 0n ? -n : n;
+        return (n < 0n ? -1n : 1n) * abs_n * (abs_n + 1n) / 2n;
+    }
+    if (n === 0) return 0;
+    var abs_n = Math.abs(n);
+    return Math.sign(n) * abs_n * (abs_n + 1) / 2;
 };

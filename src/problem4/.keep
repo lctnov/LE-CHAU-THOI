@@ -1,0 +1,50 @@
+// sum_to_n_a: Recursive function to calculate the sum from 1 to n (or from n to -1 if negative)
+// Time complexity: O(|n|), Space complexity: O(|n|) (recursion stack)
+// Note: Avoid using with large |n| (>10000) due to stack overflow risk
+function sum_to_n_a(n: number): number {
+    if (n === 0) return 0;
+    if (n > 0) return n + sum_to_n_a(n - 1);
+    return n + sum_to_n_a(n + 1);
+}
+
+// sum_to_n_b: Loop-based function to calculate the sum
+// Time complexity: O(|n|), Space complexity: O(1)
+// Simplified loop logic for better readability
+function sum_to_n_b(n: number): number {
+    let sum = 0;
+    const start = n > 0 ? 1 : n;
+    const end = n > 0 ? n : -1; // Stop before 0 if negative
+    if (n > 0) {
+        for (let i = start; i <= end; i++) {
+            sum += i;
+        }
+    } else {
+        for (let i = start; i <= end; i++) {
+            sum += i;
+        }
+    }
+    return sum; // No need to add 0 for negative n as 0 is not included in the negative sum
+}
+
+// sum_to_n_c: Mathematical formula (Gauss formula), supports both number and bigint
+// Time complexity: O(1) time and space – the most optimal
+// Supports BigInt for large numbers to avoid precision loss
+function sum_to_n_c(n: number | bigint): number | bigint {
+    if (typeof n === 'bigint') {
+        if (n === 0n) return 0n;
+        const abs_n = n < 0n ? -n : n;
+        return (n < 0n ? -1n : 1n) * abs_n * (abs_n + 1n) / 2n;
+    }
+    
+    // Number version
+    if (n === 0) return 0;
+    const abs_n = Math.abs(n as number);
+    return Math.sign(n as number) * abs_n * (abs_n + 1) / 2;
+}
+
+// Example usage (can be removed if not needed):
+// console.log(sum_to_n_a(5)); // 15
+// console.log(sum_to_n_b(-5)); // -15
+// console.log(sum_to_n_c(1000000000000000n)); // Accurate BigInt result
+
+export { sum_to_n_a, sum_to_n_b, sum_to_n_c };

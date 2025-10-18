@@ -96,14 +96,14 @@
 		setRateInfo(`1 ${fromSym} ≈ ${fmt(rate, 8)} ${toSym} · 1 ${toSym} ≈ ${fmt(inverted, 8)} ${fromSym}`);
 
 		// balance validation
-		const bal = state.balances.get(fromSym) ?? 0;
-		if (amt > bal) {
-			setMessage(`Insufficient balance. Available: ${fmt(bal)} ${fromSym}`, 'error');
+		const balance = state.balances.get(fromSym) ?? 0;
+		if (amt > balance) {
+			setMessage(`Insufficient balance. Available: ${fmt(balance)} ${fromSym}`, 'error');
 			updateSubmit(false);
 			return;
 		}
 
-		// 🔥 kiểm tra "You receive"
+		// "You receive"
 		if (!isFinite(out) || out <= 0) {
 			updateSubmit(false);
 			setMessage('');
